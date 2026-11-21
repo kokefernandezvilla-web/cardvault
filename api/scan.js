@@ -44,7 +44,9 @@ export default async function handler(req, res) {
       return res.status(413).json({ error: "La imagen excede el tamaño máximo permitido" });
     }
 
-    const base64Data = image.split(",")[1];
+    const [header, base64Data] = image.split(",");
+    const mimeMatch = header.match(/data:(image\/[a-zA-Z0-9.+-]+);base64/);
+    const mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
 
     const prompt = `Eres un tasador experto en cartas coleccionables. Analiza la foto y responde SOLO con un JSON válido con estas claves exactas:
 - player (string: jugador o personaje)
@@ -59,7 +61,7 @@ export default async function handler(req, res) {
 Si no es una carta coleccionable devuelve {"error":"no es una carta"}.`;
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -68,7 +70,7 @@ Si no es una carta coleccionable devuelve {"error":"no es una carta"}.`;
             {
               parts: [
                 { text: prompt },
-                { inline_data: { mime_type: "image/jpeg", data: base64Data } }
+                { inline_data: { mime_type: mimeType, data: base64Data } }
               ]
             }
           ],
@@ -79,11 +81,15 @@ Si no es una carta coleccionable devuelve {"error":"no es una carta"}.`;
       }
     );
 
+    const data = await response.json().catch(() => ({}));
+
     if (!response.ok) {
-      return res.status(502).json({ error: "Error consultando la IA gratuita" });
+      return res.status(response.status).json({
+        error: data?.error?.message || "Error consultando la IA gratuita",
+        status: response.status
+      });
     }
 
-    const data = await response.json();
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!text) {
       return res.status(500).json({ error: "Respuesta vacía de la IA" });
@@ -104,6 +110,8 @@ Si no es una carta coleccionable devuelve {"error":"no es una carta"}.`;
 
     return res.status(200).json(parsed);
   } catch (error) {
-    return res.status(500).json({ error: "Error interno procesando la imagen" });
+    return res.status(500).json({
+      error: error?.message || "Error interno procesando la imagen"
+    });
   }
 }
