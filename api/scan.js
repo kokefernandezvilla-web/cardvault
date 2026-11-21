@@ -2,6 +2,8 @@ const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const MAX_REQUESTS_PER_WINDOW = 10;
 const MAX_BASE64_LENGTH = 2_200_000;
 
+const MODEL_ID = "gemini-3.8-flash";
+
 const ipHits = new Map();
 
 function checkRateLimit(ip) {
@@ -48,7 +50,7 @@ export default async function handler(req, res) {
     const mimeMatch = header.match(/data:(image\/[a-zA-Z0-9.+-]+);base64/);
     const mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
 
-const prompt = `Eres un tasador experto en cartas coleccionables. Analiza la foto y responde SOLO con un JSON válido con estas claves exactas:
+    const prompt = `Eres un tasador experto en cartas coleccionables. Analiza la foto y responde SOLO con un JSON válido con estas claves exactas:
 - player (string: jugador o personaje)
 - set (string: colección/marca)
 - year (string: año de edición, vacío si no se ve)
@@ -61,7 +63,7 @@ const prompt = `Eres un tasador experto en cartas coleccionables. Analiza la fot
 Si no es una carta coleccionable devuelve {"error":"no es una carta"}.`;
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${encodeURIComponent(apiKey)}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ID}:generateContent?key=${encodeURIComponent(apiKey)}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
