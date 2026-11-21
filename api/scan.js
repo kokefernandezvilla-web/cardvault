@@ -1,6 +1,7 @@
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const MAX_REQUESTS_PER_WINDOW = 10;
 const MAX_BASE64_LENGTH = 2_200_000;
+const REQUEST_TIMEOUT_MS = 25_000;
 
 const MODEL_ID = "gemini-3.8-flash";
 
@@ -18,8 +19,58 @@ function checkRateLimit(ip) {
   return entry.count <= MAX_REQUESTS_PER_WINDOW;
 }
 
+function logDiag(reqId, level, step, details = {}) {
+  const safePayload = {
+    reqId,
+    step,
+    timestamp: new Date().toISOString(),
+    ...details
+  };
+  if (level === "error") {
+    console.error("[/api/scan]", JSON.stringify(safePayload));
+  } else {
+    console.log("[/api/scan]", JSON.stringify(safePayload));
+  }
+}
+
+function extractModelText(data) {
+  // Formato standard generateContent
+  const candidateText = data?.candidates?.[0]?.content?.parts
+    ?.map((p) => (typeof p?.text === "string" ? p.text : ""))
+    .join("")
+    .trim();
+  if (candidateText) return candidateText;
+
+  // Formato Interactions API / outputs alternativos si aplica
+  if (typeof data?.output_text === "string" && data.output_text.trim()) {
+    return data.output_text.trim();
+  }
+  if (Array.isArray(data?.outputs)) {
+    const outText = data.outputs
+      .flatMap((o) => (Array.isArray(o?.content) ? o.content : [o]))
+      .map((item) => (typeof item?.text === "string" ? item.text : ""))
+      .join("")
+      .trim();
+    if (outText) return outText;
+  }
+
+  return "";
+}
+
+function parseJsonSafely(rawText) {
+  const cleaned = rawText
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
+  return JSON.parse(cleaned);
+}
+
 export default async function handler(req, res) {
+  const reqId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+
   if (req.method !== "POST") {
+    logDiag(reqId, "warn", "method_not_allowed", { method: req.method });
     return res.status(405).json({ error: "Method not allowed" });
   }
 
@@ -29,26 +80,48 @@ export default async function handler(req, res) {
     "unknown";
 
   if (!checkRateLimit(clientIp)) {
+    logDiag(reqId, "warn", "rate_limited");
     return res.status(429).json({ error: "Demasiadas solicitudes. Inténtalo en un minuto." });
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({ error: "Falta configurar GEMINI_API_KEY en Vercel" });
+  if (!apiKey || typeof apiKey !== "string" || apiKey.trim().length === 0) {
+    logDiag(reqId, "error", "missing_api_key");
+    return res.status(503).json({
+      error: "Servicio temporalmente no disponible: falta configurar GEMINI_API_KEY en el servidor.",
+      status: 503
+    });
   }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
     const { image } = req.body || {};
     if (!image || typeof image !== "string" || !image.includes(",")) {
+      logDiag(reqId, "warn", "invalid_image_payload");
       return res.status(400).json({ error: "Imagen no válida" });
     }
     if (image.length > MAX_BASE64_LENGTH) {
+      logDiag(reqId, "warn", "image_too_large", { length: image.length });
       return res.status(413).json({ error: "La imagen excede el tamaño máximo permitido" });
     }
 
     const [header, base64Data] = image.split(",");
+    if (!base64Data) {
+      logDiag(reqId, "warn", "empty_base64_data");
+      return res.status(400).json({ error: "Datos Base64 vacíos" });
+    }
+
     const mimeMatch = header.match(/data:(image\/[a-zA-Z0-9.+-]+);base64/);
     const mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
+
+    logDiag(reqId, "info", "request_validated", {
+      model: MODEL_ID,
+      mimeType,
+      base64Chars: base64Data.length,
+      hasKeyConfigured: true
+    });
 
     const prompt = `Eres un tasador experto en cartas coleccionables. Analiza la foto y responde SOLO con un JSON válido con estas claves exactas:
 - player (string: jugador o personaje)
@@ -62,11 +135,14 @@ export default async function handler(req, res) {
 - note (string: breve detalle clave de valor en español)
 Si no es una carta coleccionable devuelve {"error":"no es una carta"}.`;
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ID}:generateContent?key=${encodeURIComponent(apiKey)}`,
-      {
+    const endpointUrl = `[https://generativelanguage.googleapis.com/v1beta/models/$](https://generativelanguage.googleapis.com/v1beta/models/$){encodeURIComponent(MODEL_ID)}:generateContent?key=${encodeURIComponent(apiKey.trim())}`;
+
+    let response;
+    try {
+      response = await fetch(endpointUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
         body: JSON.stringify({
           contents: [
             {
@@ -80,24 +156,80 @@ Si no es una carta coleccionable devuelve {"error":"no es una carta"}.`;
             response_mime_type: "application/json"
           }
         })
-      }
-    );
-
-    const data = await response.json().catch(() => ({}));
-
-    if (!response.ok) {
-      return res.status(response.status).json({
-        error: data?.error?.message || "Error consultando la IA gratuita",
-        status: response.status
+      });
+    } catch (fetchErr) {
+      const isTimeout = fetchErr?.name === "AbortError";
+      logDiag(reqId, "error", isTimeout ? "gemini_timeout" : "gemini_network_error", {
+        model: MODEL_ID,
+        message: fetchErr?.message || "Network error"
+      });
+      return res.status(503).json({
+        error: isTimeout
+          ? "Tiempo de espera agotado al conectar con el servicio de IA (503)."
+          : "Error de conexión con el servicio de IA (503).",
+        status: 503
       });
     }
 
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) {
-      return res.status(500).json({ error: "Respuesta vacía de la IA" });
+    const rawBody = await response.text().catch(() => "");
+    let data = {};
+    if (rawBody) {
+      try {
+        data = JSON.parse(rawBody);
+      } catch {
+        logDiag(reqId, "error", "gemini_invalid_json_body", {
+          httpStatus: response.status,
+          bodyPreview: rawBody.slice(0, 200)
+        });
+        return res.status(503).json({
+          error: "Respuesta no válida del servicio de IA (503).",
+          status: 503
+        });
+      }
     }
 
-    const parsed = JSON.parse(text);
+    if (!response.ok) {
+      const upstreamStatus = response.status;
+      const upstreamMessage = data?.error?.message || "Error consultando la IA";
+      const statusToReturn = upstreamStatus >= 500 || upstreamStatus === 503 ? 503 : upstreamStatus;
+
+      logDiag(reqId, "error", "gemini_http_error", {
+        model: MODEL_ID,
+        upstreamStatus,
+        returnedStatus: statusToReturn,
+        upstreamMessage: String(upstreamMessage).slice(0, 300)
+      });
+
+      return res.status(statusToReturn).json({
+        error: upstreamMessage,
+        status: statusToReturn
+      });
+    }
+
+    const text = extractModelText(data);
+    if (!text) {
+      logDiag(reqId, "error", "gemini_empty_output", { model: MODEL_ID });
+      return res.status(503).json({
+        error: "El servicio de IA devolvió una respuesta vacía (503).",
+        status: 503
+      });
+    }
+
+    let parsed;
+    try {
+      parsed = parseJsonSafely(text);
+    } catch (parseErr) {
+      logDiag(reqId, "error", "model_json_parse_error", {
+        model: MODEL_ID,
+        message: parseErr?.message || "JSON parse error",
+        textPreview: text.slice(0, 200)
+      });
+      return res.status(503).json({
+        error: "No se pudo interpretar la valoración devuelta por la IA (503).",
+        status: 503
+      });
+    }
+
     if (parsed && !parsed.error) {
       parsed.sources = [
         {
@@ -110,10 +242,22 @@ Si no es una carta coleccionable devuelve {"error":"no es una carta"}.`;
       ];
     }
 
+    logDiag(reqId, "info", "scan_success", {
+      model: MODEL_ID,
+      hasErrorField: Boolean(parsed?.error),
+      player: parsed?.player || null
+    });
+
     return res.status(200).json(parsed);
   } catch (error) {
-    return res.status(500).json({
-      error: error?.message || "Error interno procesando la imagen"
+    logDiag(reqId, "error", "unhandled_exception", {
+      message: error?.message || "Unknown error"
     });
+    return res.status(503).json({
+      error: "Servicio temporalmente no disponible procesando la imagen (503).",
+      status: 503
+    });
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
