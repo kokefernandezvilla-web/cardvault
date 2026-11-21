@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CardVault — Colección y Tasación de Cartas con IA Gratis</title>
+<meta name="description" content="Organiza tu colección de cartas coleccionables gratis, táslas con inteligencia artificial y genera anuncios listos para Wallapop, eBay y Vinted.">
+<meta property="og:title" content="CardVault — Colección y Tasación de Cartas con IA Gratis">
+<meta property="og:description" content="Identifica cartas con foto gratis, estima su precio y crea anuncios listos para vender.">
+<meta property="og:type" content="website">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="CardVault">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#c2410c">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" id="ico" href="/icon-192.png">
+
+<!-- GOOGLE ADSENSE: Cuando Google apruebe tu sitio, pega aquí tu script de AdSense:
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+-->
+
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f6f5f1;--card:#fff;--tx:#1c1b18;--mu:#6b6a64;--ln:#e3e1da;--ac:#c2410c;--ok:#15803d;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17161a;--card:#222126;--tx:#f1efe9;--mu:#a09e96;--ln:#34323a;--ac:#fb923c;--ok:#4ade80;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#17161a;--card:#222126;--tx:#f1efe9;--mu:#a09e96;--ln:#34323a;--ac:#fb923c;--ok:#4ade80;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:660px;margin:0 auto;padding:16px}
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+h1{font-size:22px;margin:0 0 4px}.sub{color:var(--mu);margin:0 0 16px;font-size:14px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:10px 6px;text-align:center}
+.stat b{display:block;font-size:18px}.stat span{font-size:11px;color:var(--mu)}
+.stat.free{border-color:var(--ok)}
+.panel{background:var(--card);border:1px solid var(--ln);border-radius:14px;padding:14px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+input,select,textarea,button{font:inherit;color:var(--tx)}
+input,select,textarea{width:100%;padding:10px;border:1px solid var(--ln);border-radius:10px;background:var(--bg)}
+button{border:0;border-radius:10px;padding:10px 14px;background:var(--ac);color:#fff;font-weight:600;cursor:pointer}
+button:disabled{opacity:.6;cursor:not-allowed}
+button.g{background:transparent;color:var(--tx);border:1px solid var(--ln)}
+button.s{padding:6px 10px;font-size:13px}
+.full{grid-column:1/-1}
+.bar{display:flex;gap:8px;margin-bottom:12px}.bar input{flex:2}.bar select{flex:1}
+.item{background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:12px;margin-bottom:8px}
+.top{display:flex;justify-content:space-between;gap:8px}
+.name{font-weight:700}.meta{color:var(--mu);font-size:13px}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;border:1px solid var(--ln);margin-left:6px}
+.tag.v{color:var(--ok);border-color:var(--ok)}
+.acts{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.empty{text-align:center;color:var(--mu);padding:24px}
+dialog{border:1px solid var(--ln);border-radius:14px;background:var(--card);color:var(--tx);width:min(92vw,540px);padding:18px}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+textarea{min-height:150px}
+.ai-box{margin-top:10px;padding-top:10px;border-top:1px dashed var(--ln);font-size:13px}
+.ai-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.ai-chip{background:var(--bg);border:1px solid var(--ln);border-radius:8px;padding:4px 8px;font-size:12px}
+.ai-chip b{color:var(--ac)}
+.ad-slot{background:var(--card);border:1px dashed var(--ln);border-radius:12px;padding:10px;margin:14px 0;text-align:center;min-height:90px;display:flex;flex-direction:column;justify-content:center;align-items:center}
+.ad-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--mu);margin-bottom:4px}
+.seo-guide{background:var(--card);border:1px solid var(--ln);border-radius:14px;padding:16px;margin-top:20px;font-size:14px}
+.seo-guide h2{font-size:17px;margin:0 0 8px}
+.seo-guide h3{font-size:15px;margin:14px 0 4px}
+.seo-guide p{margin:0 0 10px;color:var(--mu)}
+.ftr{margin-top:20px;padding-top:12px;border-top:1px solid var(--ln);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;font-size:12px;color:var(--mu)}
+.ftr a{color:var(--mu);text-decoration:none;cursor:pointer}
+.ftr a:hover{text-decoration:underline}
+.cookie-bar{position:fixed;left:12px;right:12px;bottom:12px;max-width:636px;margin:0 auto;background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:12px 14px;box-shadow:0 8px 24px rgba(0,0,0,.18);display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;z-index:50}
+</style></head><body><main>
+<div class="hdr">
+  <div>
+    <h1>CardVault</h1>
+    <p class="sub" style="margin-bottom:16px">Organiza tu colección de cartas gratis, tásala con IA y genera anuncios para vender.</p>
+  </div>
+  <button class="g s" id="themeBtn" type="button" title="Cambiar tema">Tema</button>
+</div>
+
+<div class="panel" id="tip" hidden><b>Instálala en tu móvil</b><p class="sub" style="margin:6px 0 8px">Pulsa <b>Compartir</b> (iPhone) o el menú del navegador (Android) y elige <b>Añadir a pantalla de inicio</b>.</p><button class="g s" id="tipX" type="button">Entendido</button></div>
+
+<div class="stats">
+  <div class="stat"><b id="sN">0</b><span>Cartas</span></div>
+  <div class="stat"><b id="sV">0</b><span>En venta</span></div>
+  <div class="stat"><b id="sP">0 €</b><span>En venta</span></div>
+  <div class="stat free" title="Se renuevan gratis cada 24 horas"><b id="sC">15/15</b><span>Hoy gratis</span></div>
+</div>
+
+<div class="panel" id="scanP">
+  <button class="full" id="scanB" type="button" style="width:100%">📷 Escanear carta con IA (Gratis)</button>
+  <input type="file" id="scanF" accept="image/*" hidden>
+  <p class="sub" id="scanS" style="margin:8px 0 0">Haz una foto a tu carta para detectar jugador, set, estado y precio orientativo.</p>
+  <div class="ai-box" id="aiDetails" hidden>
+    <div style="font-weight:600;color:var(--ok)">✓ Carta identificada:</div>
+    <div class="ai-chips" id="aiChips"></div>
+  </div>
+</div>
+
+<!-- BLOQUE PUBLICIDAD 1 (GOOGLE ADSENSE - SUPERIOR/MEDIO) -->
+<div class="ad-slot" id="adSlotTop">
+  <span class="ad-lbl">Publicidad</span>
+  <span class="meta" style="font-size:12px">Espacio reservado para anuncio de Google AdSense</span>
+  <!-- Pega aquí tu bloque <ins class="adsbygoogle"> cuando AdSense apruebe tu web -->
+</div>
+
+<div class="panel"><div class="grid" id="f">
+  <input id="player" class="full" placeholder="Jugador / carta (ej. Cooper Flagg)">
+  <input id="set" placeholder="Set (ej. Topps Flagship)">
+  <input id="year" placeholder="Año" inputmode="numeric">
+  <input id="num" placeholder="Nº de carta">
+  <select id="sport"><option>NFL</option><option>NBA</option><option>Pokémon</option><option>Fútbol</option><option>Otra</option></select>
+  <select id="cond"><option>Mint</option><option selected>Near Mint</option><option>Excelente</option><option>Jugada</option></select>
+  <input id="price" placeholder="Precio (€)" inputmode="decimal">
+  <button class="full" id="add" type="button">Añadir carta</button>
+</div></div>
+
+<div class="bar"><input id="q" placeholder="Buscar…"><select id="flt"><option value="">Todas</option><option value="NFL">NFL</option><option value="NBA">NBA</option><option value="Pokémon">Pokémon</option><option value="Fútbol">Fútbol</option><option value="Otra">Otra</option><option value="venta">En venta</option></select></div>
+<div id="list"></div>
+
+<p class="sub" style="margin-top:16px">
+  <button class="g s" id="exp" type="button">Copiar copia de seguridad</button>
+  <button class="g s" id="imp" type="button">Restaurar</button>
+</p>
+
+<!-- BLOQUE PUBLICIDAD 2 (GOOGLE ADSENSE - INFERIOR) -->
+<div class="ad-slot" id="adSlotBottom">
+  <span class="ad-lbl">Publicidad</span>
+  <span class="meta" style="font-size:12px">Espacio reservado para anuncio de Google AdSense</span>
+  <!-- Pega aquí tu segundo bloque <ins class="adsbygoogle"> cuando AdSense apruebe tu web -->
+</div>
+
+<!-- GUÍA EDITORIAL PARA COLECCIONISTAS -->
+<section class="seo-guide">
+  <h2>Guía rápida para tasar y vender tus cartas coleccionables</h2>
+  <p>CardVault es una herramienta gratuita diseñada para coleccionistas de NBA, NFL, Pokémon y fútbol que quieren llevar el control de su inventario y calcular precios orientativos antes de publicar en plataformas de segunda mano.</p>
+  <h3>¿Cómo influye el estado de conservación en el precio?</h3>
+  <p><b>Mint:</b> Esquinas afiladas, superficie sin marcas y centrado casi perfecto. <b>Near Mint:</b> Mínimo desgaste en bordes apenas visible. <b>Excelente / Jugada:</b> Signos claros de uso o dobleces que reducen el valor de mercado respecto a una copia impecable.</p>
+  <h3>Consejos antes de publicar en Wallapop, eBay o Vinted</h3>
+  <p>Fotografía siempre la carta con buena luz natural fuera de fundas reflectantes, indica el año y número exacto de serie, y envíala protegida en funda blanda (sleeve) y funda rígida (toploader).</p>
+</section>
+
+<footer class="ftr">
+  <span>CardVault · Herramienta gratuita</span>
+  <div>
+    <a id="openPrivacy">Privacidad y Cookies</a> · <a id="openTerms">Aviso Legal</a>
+  </div>
+</footer>
+</main>
+
+<!-- Banner de consentimiento de cookies -->
+<div class="cookie-bar" id="cookieBar" hidden>
+  <span>Usamos almacenamiento local para guardar tu colección y cookies publicitarias de terceros para mantener la web gratis.</span>
+  <button class="s" id="cookieOk" type="button">Aceptar</button>
+</div>
+
+<!-- Modal Anuncio -->
+<dialog id="dlg"><h3 style="margin-top:0">Anuncio listo para copiar</h3>
+<select id="plat" style="margin-bottom:8px"><option>Wallapop</option><option>eBay</option><option>Vinted</option></select>
+<textarea id="txt"></textarea>
+<div class="acts"><button id="cp" type="button">Copiar texto</button><button class="g" id="cl" type="button">Cerrar</button></div></dialog>
+
+<!-- Modal Privacidad y Cookies -->
+<dialog id="privacyDlg">
+  <h3 style="margin-top:0">Política de Privacidad y Cookies</h3>
+  <p class="meta" style="line-height:1.5">
+    <b>1. Almacenamiento de tu colección:</b> Tus cartas se guardan exclusivamente en la memoria local de tu dispositivo (<code>localStorage</code>). No vendemos ni publicamos tu inventario.<br><br>
+    <b>2. Procesamiento de imágenes:</b> Las fotografías enviadas al escáner se procesan únicamente para identificar la carta mediante inteligencia artificial y no se almacenan de forma permanente.<br><br>
+    <b>3. Publicidad y Cookies (Google AdSense):</b> Para ofrecer esta herramienta de forma gratuita, mostramos anuncios gestionados por terceros (como Google), que pueden utilizar cookies para mostrar publicidad relevante según tus visitas anteriores. Puedes gestionar o desactivar las cookies desde la configuración de tu navegador o en la configuración de anuncios de Google.
+  </p>
+  <div class="acts" style="margin-top:12px">
+    <button class="g" id="privacyCl" type="button">Cerrar</button>
+  </div>
+</dialog>
+
+<!-- Modal Aviso Legal -->
+<dialog id="legalDlg">
+  <h3 style="margin-top:0">Aviso Legal y Condiciones de Uso</h3>
+  <p class="meta" style="line-height:1.5">
+    <b>Naturaleza orientativa:</b> Las valoraciones generadas por CardVault son estimaciones automáticas basadas en inteligencia artificial y tienen carácter meramente informativo. No constituyen una tasación profesional certificada ni garantía de venta. Recomendamos verificar ventas recientes completadas antes de cerrar cualquier transacción.
+  </p>
+  <div class="acts" style="margin-top:12px">
+    <button class="g" id="legalCl" type="button">Cerrar</button>
+  </div>
+</dialog>
+
+<script>
+var API_URL = "/api/scan";
+var DAILY_FREE_LIMIT = 15;
+
+var KEY = "cardvault:v1", QUOTA_KEY = "cardvault:daily_quota", THEME_KEY = "cardvault:theme", COOKIE_KEY = "cardvault:cookies_ok";
+var cards = [], cur = null, remainingToday = DAILY_FREE_LIMIT;
+
+function todayStr(){
+  return new Date().toISOString().slice(0, 10);
+}
+
+function load(){
+  try{
+    var r = localStorage.getItem(KEY); cards = r ? JSON.parse(r) : [];
+    var qRaw = localStorage.getItem(QUOTA_KEY);
+    var today = todayStr();
+    if(qRaw){
+      var qObj = JSON.parse(qRaw);
+      if(qObj && qObj.date === today){
+        remainingToday = Math.max(0, Math.min(DAILY_FREE_LIMIT, parseInt(qObj.left, 10)));
+      } else {
+        remainingToday = DAILY_FREE_LIMIT;
+      }
+    }
+    var th = localStorage.getItem(THEME_KEY);
+    if(th === "dark" || th === "light") document.documentElement.setAttribute("data-theme", th);
+  }catch(e){ cards = []; remainingToday = DAILY_FREE_LIMIT; }
+}
+
+function save(){
+  try{
+    localStorage.setItem(KEY, JSON.stringify(cards));
+    localStorage.setItem(QUOTA_KEY, JSON.stringify({ date: todayStr(), left: remainingToday }));
+  }catch(e){}
+}
+
+var $ = function(i){ return document.getElementById(i); };
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+
+$("themeBtn").onclick = function(){
+  var curTheme = document.documentElement.getAttribute("data-theme");
+  var isDark = curTheme === "dark" || (!curTheme && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  var next = isDark ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  try{ localStorage.setItem(THEME_KEY, next); }catch(e){}
+};
+
+function render(){
+  var q = $("q").value.toLowerCase(), f = $("flt").value;
+  var sale = cards.filter(function(c){ return c.sale; });
+  $("sN").textContent = cards.length;
+  $("sV").textContent = sale.length;
+  $("sP").textContent = sale.reduce(function(a,c){ return a + (parseFloat(c.price) || 0); }, 0).toFixed(0) + " €";
+  $("sC").textContent = remainingToday + "/" + DAILY_FREE_LIMIT;
+
+  var out = cards.filter(function(c){
+    var m = (c.player + " " + c.set + " " + c.year + " " + c.num).toLowerCase().indexOf(q) > -1;
+    var k = !f || (f === "venta" ? c.sale : c.sport === f);
+    return m && k;
+  });
+  $("list").innerHTML = out.length ? out.map(function(c){
+    return '<div class="item"><div class="top"><div><span class="name">' + esc(c.player) + '</span>' +
+      (c.sale ? '<span class="tag v">En venta</span>' : '') +
+      '<div class="meta">' + esc(c.sport) + ' · ' + esc(c.set || "Sin set") + ' ' + esc(c.year) + (c.num ? ' · #' + esc(c.num) : '') + ' · ' + esc(c.cond) + '</div></div><b>' +
+      (c.price ? esc(c.price) + ' €' : '') + '</b></div><div class="acts">' +
+      '<button class="g s" data-a="sale" data-i="' + c.id + '">' + (c.sale ? 'Quitar de venta' : 'Marcar en venta') + '</button>' +
+      '<button class="g s" data-a="ad" data-i="' + c.id + '">Crear anuncio</button>' +
+      '<button class="g s" data-a="del" data-i="' + c.id + '">Borrar</button></div></div>';
+  }).join("") : '<div class="empty">Aún no hay cartas. Escanea o añade la primera arriba.</div>';
+}
+
+$("add").onclick = function(){
+  var p = $("player").value.trim();
+  if(!p){ $("player").focus(); return; }
+  cards.unshift({
+    id: Date.now(), player: p, set: $("set").value.trim(), year: $("year").value.trim(),
+    num: $("num").value.trim(), sport: $("sport").value, cond: $("cond").value,
+    price: $("price").value.replace(",", "."), sale: false
+  });
+  ["player","set","year","num","price"].forEach(function(i){ $(i).value = ""; });
+  $("aiDetails").hidden = true;
+  save(); render();
+};
+
+$("list").onclick = function(e){
+  var b = e.target.closest("button"); if(!b) return;
+  var id = +b.dataset.i;
+  var c = cards.filter(function(x){ return x.id === id; })[0]; if(!c) return;
+  if(b.dataset.a === "sale"){ c.sale = !c.sale; save(); render(); }
+  else if(b.dataset.a === "del"){ if(confirm("¿Borrar esta carta?")){ cards = cards.filter(function(x){ return x.id !== id; }); save(); render(); } }
+  else { cur = c; ad(); $("dlg").showModal(); }
+};
+
+function ad(){
+  var c = cur, p = $("plat").value, t = c.player + " " + (c.set || "") + " " + c.year + (c.num ? " #" + c.num : "");
+  var body = p === "eBay"
+    ? t + " - " + c.cond + " - Trading Card\n\nCarta " + c.sport + ": " + c.player + ".\nSet: " + c.set + " (" + c.year + ")" + (c.num ? "\nNúmero: " + c.num : "") + "\nEstado: " + c.cond + "\n\nEnvío protegido en funda rígida. Mira mis otros artículos y ahorra gastos de envío."
+    : t.trim() + "\n\nCarta de coleccionismo " + c.sport + ".\nJugador: " + c.player + "\nSet: " + c.set + " " + c.year + (c.num ? "\nNº: " + c.num : "") + "\nEstado: " + c.cond + "\n\n" + (c.price ? "Precio: " + c.price + " €" + (p === "Wallapop" ? " (negociable)" : "") + "\n" : "") + "Se envía en funda y toploader." + (p === "Vinted" ? "\nHago lotes con descuento." : "");
+  $("txt").value = body;
+}
+$("plat").onchange = ad;
+$("cl").onclick = function(){ $("dlg").close(); };
+$("cp").onclick = function(){
+  $("txt").select();
+  try{ navigator.clipboard.writeText($("txt").value); }catch(e){ document.execCommand("copy"); }
+  $("cp").textContent = "¡Copiado!";
+  setTimeout(function(){ $("cp").textContent = "Copiar texto"; }, 1200);
+};
+
+$("q").oninput = render;
+$("flt").onchange = render;
+$("exp").onclick = function(){
+  var s = JSON.stringify(cards);
+  try{ navigator.clipboard.writeText(s); alert("Copia en el portapapeles. Pégala en tus notas."); }
+  catch(e){ prompt("Copia este texto:", s); }
+};
+$("imp").onclick = function(){
+  var s = prompt("Pega tu copia de seguridad:"); if(!s) return;
+  try{ var d = JSON.parse(s); if(Array.isArray(d)){ cards = d; save(); render(); } }
+  catch(e){ alert("Texto no válido"); }
+};
+
+$("openPrivacy").onclick = function(){ $("privacyDlg").showModal(); };
+$("privacyCl").onclick = function(){ $("privacyDlg").close(); };
+$("openTerms").onclick = function(){ $("legalDlg").showModal(); };
+$("legalCl").onclick = function(){ $("legalDlg").close(); };
+
+function resizeToBase64(file){
+  return new Promise(function(ok, ko){
+    var im = new Image(), u = URL.createObjectURL(file);
+    im.onload = function(){
+      var s = Math.min(1, 1000 / Math.max(im.width, im.height)), c = document.createElement("canvas");
+      c.width = im.width * s; c.height = im.height * s;
+      c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(u);
+      ok(c.toDataURL("image/jpeg", 0.85));
+    };
+    im.onerror = function(){ ko(new Error("img")); };
+    im.src = u;
+  });
+}
+
+$("scanB").onclick = function(){
+  load();
+  if(remainingToday <= 0){
+    alert("Has usado tus " + DAILY_FREE_LIMIT + " escaneos gratuitos de hoy. Mañana se recargan solos, o puedes añadir la carta manualmente abajo.");
+    return;
+  }
+  $("scanF").click();
+};
+
+$("scanF").onchange = async function(){
+  var f = this.files[0]; this.value = ""; if(!f) return;
+  var st = $("scanS");
+  st.textContent = "Analizando carta con IA gratuita…";
+  $("scanB").disabled = true;
+  $("aiDetails").hidden = true;
+
+  try{
+    var base64Image = await resizeToBase64(f);
+    var res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image: base64Image })
+    });
+    if(res.status === 429){
+      st.textContent = "Demasiadas peticiones seguidas. Espera un minuto e inténtalo de nuevo.";
+      return;
+    }
+    if(!res.ok) throw new Error("server_error");
+    var r = await res.json();
+
+    if(!r || r.error){
+      st.textContent = r && r.error ? r.error : "No he reconocido una carta en esa foto. Prueba con más luz.";
+      return;
+    }
+
+    remainingToday = Math.max(0, remainingToday - 1);
+    save(); render();
+
+    $("player").value = r.player || "";
+    $("set").value = r.set || "";
+    $("year").value = r.year || "";
+    $("num").value = r.num || "";
+    if(r.sport) $("sport").value = r.sport;
+    if(r.cond) $("cond").value = r.cond;
+
+    if(Array.isArray(r.sources) && r.sources.length > 0){
+      $("aiChips").innerHTML = r.sources.map(function(s){
+        var pRange = (s.price_low != null && s.price_high != null) ? (" · " + s.price_low + "–" + s.price_high + " €") : "";
+        return '<div class="ai-chip"><b>' + esc(s.label) + ':</b> ' + esc(s.player || "?") + esc(pRange) + '</div>';
+      }).join("");
+      $("aiDetails").hidden = false;
+    }
+
+    var lo = parseFloat(r.price_low), hi = parseFloat(r.price_high);
+    if(lo >= 0 && hi >= lo){
+      $("price").value = ((lo + hi) / 2).toFixed(0);
+      st.textContent = "Valor orientativo: " + lo + "–" + hi + " €. " + (r.note ? r.note + " " : "") + "Revisa y pulsa Añadir.";
+    } else {
+      st.textContent = "Datos rellenados. Revísalos y pulsa Añadir.";
+    }
+  } catch(e){
+    st.textContent = "Error al analizar la foto. Verifica que GEMINI_API_KEY esté configurada en Vercel.";
+  } finally {
+    $("scanB").disabled = false;
+  }
+};
+
+(function(){
+  var ios = /iPhone|iPad|iPod/.test(navigator.userAgent), st = window.navigator.standalone === true, hid = false, ck = false;
+  try{
+    hid = localStorage.getItem("cardvault:tip") === "1";
+    ck = localStorage.getItem(COOKIE_KEY) === "1";
+  }catch(e){}
+  if(ios && !st && !hid) $("tip").hidden = false;
+  $("tipX").onclick = function(){ $("tip").hidden = true; try{ localStorage.setItem("cardvault:tip","1"); }catch(e){} };
+
+  if(!ck) $("cookieBar").hidden = false;
+  $("cookieOk").onclick = function(){ $("cookieBar").hidden = true; try{ localStorage.setItem(COOKIE_KEY,"1"); }catch(e){} };
+
+  if("serviceWorker" in navigator){
+    navigator.serviceWorker.register("/sw.js").catch(function(){});
+  }
+})();
+
+load(); render();
+</script></body></html>
+```[cite: 15, 35]
+
+3. Haz clic en **Commit changes...** (arriba a la derecha) y luego en **Commit changes** en la ventana que aparece[cite: 35].
+
+Cuando guardes `index.html`, avísame y creamos el siguiente archivo (`api/scan.js`).
