@@ -48,7 +48,7 @@ export default async function handler(req, res) {
     const mimeMatch = header.match(/data:(image\/[a-zA-Z0-9.+-]+);base64/);
     const mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
 
-    const prompt = `Eres un tasador experto en cartas coleccionables. Analiza la foto y responde SOLO con un JSON válido con estas claves exactas:
+const prompt = `Eres un tasador experto en cartas coleccionables. Analiza la foto y responde SOLO con un JSON válido con estas claves exactas:
 - player (string: jugador o personaje)
 - set (string: colección/marca)
 - year (string: año de edición, vacío si no se ve)
