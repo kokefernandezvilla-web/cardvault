@@ -3,7 +3,8 @@ const MAX_REQUESTS_PER_WINDOW = 10;
 const MAX_BASE64_LENGTH = 2_200_000;
 const REQUEST_TIMEOUT_MS = 25_000;
 
-const MODEL_ID = "gemini-3.8-flash";
+// Modelo configurable desde Vercel (variable GEMINI_MODEL). Si no existe, usa gemini-2.0-flash.
+const MODEL_ID = process.env.GEMINI_MODEL || "gemini-2.0-flash";
 
 const ipHits = new Map();
 
@@ -135,7 +136,8 @@ export default async function handler(req, res) {
 - note (string: breve detalle clave de valor en español)
 Si no es una carta coleccionable devuelve {"error":"no es una carta"}.`;
 
-    const endpointUrl = `[https://generativelanguage.googleapis.com/v1beta/models/$](https://generativelanguage.googleapis.com/v1beta/models/$){encodeURIComponent(MODEL_ID)}:generateContent?key=${encodeURIComponent(apiKey.trim())}`;
+    // CORREGIDO: URL limpia (antes tenía formato Markdown pegado por error)
+    const endpointUrl = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(MODEL_ID)}:generateContent?key=${encodeURIComponent(apiKey.trim())}`;
 
     let response;
     try {
@@ -163,11 +165,11 @@ Si no es una carta coleccionable devuelve {"error":"no es una carta"}.`;
         model: MODEL_ID,
         message: fetchErr?.message || "Network error"
       });
-      return res.status(503).json({
+      return res.status(502).json({
         error: isTimeout
-          ? "Tiempo de espera agotado al conectar con el servicio de IA (503)."
-          : "Error de conexión con el servicio de IA (503).",
-        status: 503
+          ? "Tiempo de espera agotado al conectar con el servicio de IA."
+          : "Error de conexión con el servicio de IA.",
+        status: 502
       });
     }
 
@@ -181,9 +183,9 @@ Si no es una carta coleccionable devuelve {"error":"no es una carta"}.`;
           httpStatus: response.status,
           bodyPreview: rawBody.slice(0, 200)
         });
-        return res.status(503).json({
-          error: "Respuesta no válida del servicio de IA (503).",
-          status: 503
+        return res.status(502).json({
+          error: "Respuesta no válida del servicio de IA.",
+          status: 502
         });
       }
     }
@@ -191,7 +193,7 @@ Si no es una carta coleccionable devuelve {"error":"no es una carta"}.`;
     if (!response.ok) {
       const upstreamStatus = response.status;
       const upstreamMessage = data?.error?.message || "Error consultando la IA";
-      const statusToReturn = upstreamStatus >= 500 || upstreamStatus === 503 ? 503 : upstreamStatus;
+      const statusToReturn = upstreamStatus >= 500 ? 502 : upstreamStatus;
 
       logDiag(reqId, "error", "gemini_http_error", {
         model: MODEL_ID,
@@ -209,9 +211,9 @@ Si no es una carta coleccionable devuelve {"error":"no es una carta"}.`;
     const text = extractModelText(data);
     if (!text) {
       logDiag(reqId, "error", "gemini_empty_output", { model: MODEL_ID });
-      return res.status(503).json({
-        error: "El servicio de IA devolvió una respuesta vacía (503).",
-        status: 503
+      return res.status(502).json({
+        error: "El servicio de IA devolvió una respuesta vacía.",
+        status: 502
       });
     }
 
@@ -224,9 +226,9 @@ Si no es una carta coleccionable devuelve {"error":"no es una carta"}.`;
         message: parseErr?.message || "JSON parse error",
         textPreview: text.slice(0, 200)
       });
-      return res.status(503).json({
-        error: "No se pudo interpretar la valoración devuelta por la IA (503).",
-        status: 503
+      return res.status(502).json({
+        error: "No se pudo interpretar la valoración devuelta por la IA.",
+        status: 502
       });
     }
 
@@ -253,9 +255,9 @@ Si no es una carta coleccionable devuelve {"error":"no es una carta"}.`;
     logDiag(reqId, "error", "unhandled_exception", {
       message: error?.message || "Unknown error"
     });
-    return res.status(503).json({
-      error: "Servicio temporalmente no disponible procesando la imagen (503).",
-      status: 503
+    return res.status(500).json({
+      error: "Error interno procesando la imagen.",
+      status: 500
     });
   } finally {
     clearTimeout(timeoutId);
